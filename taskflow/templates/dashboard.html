@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Overview — Daymark{% endblock %}
+
+{% block content %}
+  <section class="welcome-row">
+    <div>
+      <div class="eyebrow"><span class="eyebrow-line"></span> YOUR PERSONAL SPACE</div>
+      <h1>A clearer mind<br class="mobile-break"> starts <span>right here.</span></h1>
+      <p class="welcome-copy">Take a breath. See what matters today, and take it one step at a time.</p>
+    </div>
+    <button class="button button-primary add-task-button" data-open-modal>
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Add a task
+    </button>
+  </section>
+
+  <section class="stats-grid" aria-label="Task summary">
+    <article class="stat-card stat-card-lilac">
+      <div class="stat-top"><span class="stat-label">IN PROGRESS</span><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 3.5h4v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+      <div class="stat-number">{{ stats.open }}</div>
+      <div class="stat-foot"><span class="stat-foot-dot"></span> Tasks ready for you</div>
+    </article>
+    <article class="stat-card stat-card-mint">
+      <div class="stat-top"><span class="stat-label">COMPLETED</span><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.3 4.3L19.5 6.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/></svg></span></div>
+      <div class="stat-number">{{ stats.completed }}</div>
+      <div class="stat-foot"><span class="stat-foot-dot"></span> Little wins add up</div>
+    </article>
+    <article class="stat-card stat-card-peach">
+      <div class="stat-top"><span class="stat-label">PAST DUE</span><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+      <div class="stat-number">{{ stats.overdue }}</div>
+      <div class="stat-foot"><span class="stat-foot-dot"></span> No rush, just a heads-up</div>
+    </article>
+    <article class="stat-card stat-card-blue">
+      <div class="stat-top"><span class="stat-label">TOTAL TASKS</span><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M8 6h12M8 12h12M8 18h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m3.5 6 .01 0M3.5 12l.01 0M3.5 18l.01 0" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></span></div>
+      <div class="stat-number">{{ stats.total }}</div>
+      <div class="stat-foot"><span class="stat-foot-dot"></span> Your goals, all in one place</div>
+    </article>
+  </section>
+
+  <section class="task-section" id="task-list">
+    <div class="section-heading">
+      <div>
+        <div class="section-title-row"><h2>Your tasks</h2><span class="task-total">{{ stats.total }}</span></div>
+        <p class="section-subtitle">Everything you want to make time for.</p>
+      </div>
+      <div class="task-tools">
+        <label class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input type="search" id="task-search" placeholder="Search tasks..." aria-label="Search tasks">
+          <kbd>⌘ K</kbd>
+        </label>
+        <button class="filter-button" id="filter-toggle" aria-label="Filter tasks" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M7 12h10m-7 6h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-tabs" role="group" aria-label="Filter tasks">
+        <button class="filter-tab active" data-status="all">All tasks <span>{{ stats.total }}</span></button>
+        <button class="filter-tab" data-status="open">In progress <span>{{ stats.open }}</span></button>
+        <button class="filter-tab" data-status="completed">Completed <span>{{ stats.completed }}</span></button>
+      </div>
+      <select class="sort-select" id="category-filter" aria-label="Filter by category">
+        <option value="all">All categories</option>
+        {% for category in categories %}
+          <option value="{{ category }}">{{ category }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="task-list">
+      {% for task in tasks %}
+        {% set is_overdue = task.due_date and task.due_date < today.isoformat() and not task.completed %}
+        <article class="task-row {% if task.completed %}is-complete{% endif %}"
+          data-task-row data-status="{{ 'completed' if task.completed else 'open' }}"
+          data-category="{{ task.category }}" data-title="{{ task.title|lower }}"
+          data-notes="{{ task.notes|lower }}">
+          <form class="complete-form" method="post" action="{{ url_for('main.toggle_task', task_id=task.id) }}">
+            <button class="check-button" type="submit" aria-label="{{ 'Reopen' if task.completed else 'Complete' }} {{ task.title }}">
+              {% if task.completed %}<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m4.5 10.2 3.6 3.6 7.4-7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{% endif %}
+            </button>
+          </form>
+          <div class="task-main">
+            <div class="task-title-line">
+              <h3>{{ task.title }}</h3>
+              <span class="priority-pill priority-{{ task.priority|lower }}"><span></span>{{ task.priority }}</span>
+            </div>
+            {% if task.notes %}<p class="task-notes">{{ task.notes }}</p>{% endif %}
+            <div class="task-meta">
+              <span class="category-pill"><span class="category-dot dot-{{ task.category|lower }}"></span>{{ task.category }}</span>
+              {% if task.due_date %}
+                <span class="due-date {% if is_overdue %}is-overdue{% endif %}">
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 2v3M10.5 2v3M2.5 6.5h11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                  {% if is_overdue %}Overdue · {% endif %}{{ task.due_date|date_label }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="task-actions">
+            <button class="icon-button edit-task" type="button" aria-label="Edit {{ task.title }}"
+              data-edit-task data-id="{{ task.id }}" data-title="{{ task.title }}"
+              data-notes="{{ task.notes }}" data-category="{{ task.category }}"
+              data-priority="{{ task.priority }}" data-due-date="{{ task.due_date or '' }}">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m12.8 4.2 3 3M4 16l3.2-.7L16.3 6a2.1 2.1 0 0 0-3-3L4.2 12.8 4 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <form method="post" action="{{ url_for('main.delete_task', task_id=task.id) }}" data-delete-form>
+              <button class="icon-button delete-task" type="submit" aria-label="Delete {{ task.title }}">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2m2 0-.7 10H6.7L6 6m2.5 3v4m3-4v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </form>
+          </div>
+        </article>
+      {% else %}
+        <div class="empty-state" id="empty-state">
+          <div class="empty-illustration"><span class="empty-sun"></span><span class="empty-check">✓</span></div>
+          <h3>A fresh start feels good.</h3>
+          <p>Add your first task and give that idea a place to land.</p>
+          <button class="button button-secondary" data-open-modal>Make your first task <span>↗</span></button>
+        </div>
+      {% endfor %}
+      {% if tasks %}
+        <div class="no-results" id="no-results" hidden>
+          <span>✦</span><strong>No tasks found</strong><p>Try a different search or filter.</p>
+        </div>
+      {% endif %}
+    </div>
+    <div class="list-footer"><span><span class="footer-sparkle">✦</span> You’re doing better than you think.</span><span>{{ stats.completed }} of {{ stats.total }} complete</span></div>
+  </section>
+
+  <footer class="page-footer"><span>Made for your kind of progress.</span><span>DAYMARK <span class="footer-dot">·</span> YOUR DAY, YOUR WAY</span></footer>
+{% endblock %}
+
+{% block scripts %}
+<div class="modal-backdrop" id="task-modal" aria-hidden="true">
+  <section class="task-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <div><span class="modal-kicker">MAKE IT HAPPEN</span><h2 id="modal-title">Add a task</h2></div>
+      <button class="modal-close" type="button" data-close-modal aria-label="Close dialog">×</button>
+    </div>
+    <form id="task-form" method="post" action="{{ url_for('main.create_task') }}">
+      <label class="field-label" for="task-title">Task name <span>*</span></label>
+      <input class="form-input" id="task-title" name="title" maxlength="120" placeholder="What would you like to get done?" required>
+      <label class="field-label" for="task-notes">A few details <span class="optional">(optional)</span></label>
+      <textarea class="form-input form-textarea" id="task-notes" name="notes" maxlength="500" rows="3" placeholder="Add a note to future you..."></textarea>
+      <div class="form-grid">
+        <div><label class="field-label" for="task-category">Space</label><select class="form-input" id="task-category" name="category">{% for category in categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}</select></div>
+        <div><label class="field-label" for="task-priority">Priority</label><select class="form-input" id="task-priority" name="priority">{% for priority in priorities %}<option value="{{ priority }}" {% if priority == 'Medium' %}selected{% endif %}>{{ priority }}</option>{% endfor %}</select></div>
+      </div>
+      <label class="field-label" for="task-due-date">Due date <span class="optional">(optional)</span></label>
+      <input class="form-input date-input" id="task-due-date" type="date" name="due_date">
+      <div class="modal-actions"><button class="button button-secondary" type="button" data-close-modal>Cancel</button><button class="button button-primary" type="submit" id="save-task">Add to my list <span>↗</span></button></div>
+    </form>
+  </section>
+</div>
+{% endblock %}

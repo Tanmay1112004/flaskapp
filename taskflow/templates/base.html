@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0c12">
+  <title>{% block title %}Daymark — make room for what matters{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="{{ url_for('main.dashboard') }}" aria-label="Daymark home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none"><path d="M7 16.5 13 22l12-13" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 3.5a12.5 12.5 0 1 0 12.5 12.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </span>
+        <span class="brand-name">daymark<span>.</span></span>
+      </a>
+
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-link active" href="{{ url_for('main.dashboard') }}">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="2" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span>Overview</span>
+        </a>
+        <a class="nav-link" href="#task-list" data-filter-link="open">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+          <span>My tasks</span><span class="nav-count">{{ stats.open }}</span>
+        </a>
+        <a class="nav-link" href="#task-list" data-filter-link="completed">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 12.2 2.3 2.3 4.8-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Completed</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-label category-label">YOUR SPACES</div>
+      <div class="space-list">
+        <button class="space-link" data-category-link="Work"><span class="space-dot dot-work"></span>Work</button>
+        <button class="space-link" data-category-link="Personal"><span class="space-dot dot-personal"></span>Personal</button>
+        <button class="space-link" data-category-link="Health"><span class="space-dot dot-health"></span>Health</button>
+        <button class="space-link" data-category-link="Learning"><span class="space-dot dot-learning"></span>Learning</button>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="focus-card">
+          <div class="focus-sparkle">✦</div>
+          <p class="focus-title">A little progress<br>goes a long way.</p>
+          <p class="focus-copy">Keep showing up for the things that matter.</p>
+          <div class="focus-decoration" aria-hidden="true"></div>
+        </div>
+        <div class="profile">
+          <div class="avatar">D</div>
+          <div class="profile-copy"><strong>Your workspace</strong><span>Personal planner</span></div>
+          <span class="profile-menu" aria-hidden="true">···</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobile-menu" aria-label="Open navigation" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="breadcrumbs"><span>Workspace</span><span class="crumb-slash">/</span><strong>Overview</strong></div>
+        <div class="topbar-right">
+          <span class="today-label"><span class="today-dot"></span> {{ today.strftime('%A, %b %-d') }}</span>
+          <button class="avatar top-avatar" aria-label="Your profile">D</button>
+        </div>
+      </header>
+
+      <section class="page-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-stack" aria-live="polite">
+              {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </section>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
