@@ -177,7 +177,7 @@ Then visit [http://localhost:5001](http://localhost:5001). If a container named 
 
 ## Run tests
 
-
+With the project's virtual environment activated:
 
 ```bash
 python -m unittest discover -s tests -v
